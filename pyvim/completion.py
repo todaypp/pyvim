@@ -17,12 +17,14 @@ class DocumentWordsCompleter(Completer):
         word_before_cursor = document.get_word_before_cursor()
 
         # Create a set of words that could be a possible completion.
-        words = set()
+        words = {
+            w
+            for w in re.split(r'\W', document.text)
+            if len(w) > 1
+            and w.startswith(word_before_cursor)
+            and w != word_before_cursor
+        }
 
-        for w in re.split(r'\W', document.text):
-            if len(w) > 1:
-                if w.startswith(word_before_cursor) and w != word_before_cursor:
-                    words.add(w)
 
         # Yield Completion instances.
         for w in sorted(words):
@@ -62,27 +64,12 @@ class _PythonCompleter(Completer):
         self.location = location
 
     def get_completions(self, document, complete_event):
-        script = self._get_jedi_script_from_document(document)
-        if script:
+        if script := self._get_jedi_script_from_document(document):
             try:
                 completions = script.completions()
-            except TypeError:
+            except (TypeError, AttributeError, ValueError, KeyError):
                 # Issue #9: bad syntax causes completions() to fail in jedi.
                 # https://github.com/jonathanslenders/python-prompt-toolkit/issues/9
-                pass
-            except UnicodeDecodeError:
-                # Issue #43: UnicodeDecodeError on OpenBSD
-                # https://github.com/jonathanslenders/python-prompt-toolkit/issues/43
-                pass
-            except AttributeError:
-                # Jedi issue #513: https://github.com/davidhalter/jedi/issues/513
-                pass
-            except ValueError:
-                # Jedi issue: "ValueError: invalid \x escape"
-                pass
-            except KeyError:
-                # Jedi issue: "KeyError: u'a_lambda'."
-                # https://github.com/jonathanslenders/ptpython/issues/89
                 pass
             except IOError:
                 # Jedi issue: "IOError: No such file or directory."
@@ -95,26 +82,14 @@ class _PythonCompleter(Completer):
 
     def _get_jedi_script_from_document(self, document):
         import jedi  # We keep this import in-line, to improve start-up time.
-                     # Importing Jedi is 'slow'.
-
         try:
             return jedi.Script(
                 document.text,
                 column=document.cursor_position_col,
                 line=document.cursor_position_row + 1,
                 path=self.location)
-        except ValueError:
+        except (ValueError, AttributeError, IndexError, KeyError):
             # Invalid cursor position.
             # ValueError('`column` parameter is not in a valid range.')
-            return None
-        except AttributeError:
-            # Workaround for #65: https://github.com/jonathanslenders/python-prompt-toolkit/issues/65
-            # See also: https://github.com/davidhalter/jedi/issues/508
-            return None
-        except IndexError:
-            # Workaround Jedi issue #514: for https://github.com/davidhalter/jedi/issues/514
-            return None
-        except KeyError:
-            # Workaroud for a crash when the input is "u'", the start of a unicode string.
             return None
 

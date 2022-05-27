@@ -47,11 +47,7 @@ class EditorBuffer(object):
         self.isdir = False
 
         # Read text.
-        if location:
-            text = self._read(location)
-        else:
-            text = text or ''
-
+        text = self._read(location) if location else text or ''
         self._file_content = text
 
         # Create Buffer.
@@ -152,7 +148,7 @@ class EditorBuffer(object):
             self.is_new = False
         except Exception as e:
             # E.g. "No such file or directory."
-            self.editor.show_message('%s' % e)
+            self.editor.show_message(f'{e}')
         else:
             # When the save succeeds: update: _file_content.
             self._file_content = self.buffer.text

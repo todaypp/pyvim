@@ -23,7 +23,7 @@ class FileIO(EditorIO):
     """
     I/O backend for the native file system.
     """
-    def can_open_location(cls, location):
+    def can_open_location(self, location):
         # We can handle all local files.
         return '://' not in location and not os.path.isdir(location)
 
@@ -64,7 +64,7 @@ class GZipFileIO(EditorIO):
     It is possible to edit this file as if it were not compressed.
     The read and write call will decompress and compress transparently.
     """
-    def can_open_location(cls, location):
+    def can_open_location(self, location):
         return FileIO().can_open_location(location) and location.endswith('.gz')
 
     def exists(self, location):
@@ -91,7 +91,7 @@ class DirectoryIO(EditorIO):
     """
     Create a textual listing of the directory content.
     """
-    def can_open_location(cls, location):
+    def can_open_location(self, location):
         # We can handle all local directories.
         return '://' not in location and os.path.isdir(location)
 
@@ -111,21 +111,18 @@ class DirectoryIO(EditorIO):
                 files.append(f)
 
         # Construct output.
-        result = []
-        result.append('" ==================================\n')
-        result.append('" Directory Listing\n')
-        result.append('"    %s\n' % os.path.abspath(directory))
-        result.append('"    Quick help: -: go up dir\n')
-        result.append('" ==================================\n')
-        result.append('../\n')
-        result.append('./\n')
+        result = [
+            '" ==================================\n',
+            '" Directory Listing\n',
+            '"    %s\n' % os.path.abspath(directory),
+            '"    Quick help: -: go up dir\n',
+            '" ==================================\n',
+            '../\n',
+            './\n',
+        ]
 
-        for d in directories:
-            result.append('%s/\n' % d)
-
-        for f in files:
-            result.append('%s\n' % f)
-
+        result.extend('%s/\n' % d for d in directories)
+        result.extend('%s\n' % f for f in files)
         return ''.join(result), 'utf-8'
 
     def write(self, location, text, encoding):
@@ -139,7 +136,7 @@ class HttpIO(EditorIO):
     """
     I/O backend that reads from HTTP.
     """
-    def can_open_location(cls, location):
+    def can_open_location(self, location):
         # We can handle all local directories.
         return location.startswith('http://') or location.startswith('https://')
 

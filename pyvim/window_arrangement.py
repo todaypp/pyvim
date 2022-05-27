@@ -72,8 +72,7 @@ class TabPage(object):
         def walk(split):
             for c in split:
                 if isinstance(c, (HSplit, VSplit)):
-                    for i in walk(c):
-                        yield i
+                    yield from walk(c)
                 elif isinstance(c, Window):
                     yield split, c
 
@@ -87,8 +86,7 @@ class TabPage(object):
             for c in split:
                 if isinstance(c, (HSplit, VSplit)):
                     yield split, c
-                    for i in walk(c):
-                        yield i
+                    yield from walk(c)
 
         return walk(self.root)
 
@@ -203,10 +201,7 @@ class TabPage(object):
         """
         True when any of the visible buffers in this tab has unsaved changes.
         """
-        for w in self.windows():
-            if w.editor_buffer.has_unsaved_changes:
-                return True
-        return False
+        return any(w.editor_buffer.has_unsaved_changes for w in self.windows())
 
 
 class WindowArrangement(object):
@@ -238,8 +233,7 @@ class WindowArrangement(object):
     def active_pt_window(self):
         " The active prompt_toolkit layout Window. "
         if self.active_tab:
-            w = self.active_tab.active_window
-            if w:
+            if w := self.active_tab.active_window:
                 return w.pt_window
 
     def get_editor_buffer_for_location(self, location):
@@ -417,7 +411,6 @@ class WindowArrangement(object):
             eb = EditorBuffer(self.editor, text=text)
             self._add_editor_buffer(eb)
 
-            return eb
         else:
             # When a location is given, first look whether the file was already
             # opened.
@@ -429,10 +422,7 @@ class WindowArrangement(object):
                 eb = EditorBuffer(self.editor, location)
                 self._add_editor_buffer(eb)
 
-                return eb
-            else:
-                # Found! Return it.
-                return eb
+        return eb
 
     def open_buffer(self, location=None, show_in_current_window=False):
         """

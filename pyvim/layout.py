@@ -38,10 +38,7 @@ def _try_char(character, backup, encoding=sys.stdout.encoding):
     Return `character` if it can be encoded using sys.stdout, else return the
     backup character.
     """
-    if character.encode(encoding, 'replace') == b'?':
-        return backup
-    else:
-        return character
+    return backup if character.encode(encoding, 'replace') == b'?' else character
 
 
 TABSTOP_DOT = _try_char('\u2508', '.')
@@ -59,11 +56,10 @@ class TabsControl(FormattedTextControl):
         def create_tab_handler(index):
             " Return a mouse handler for this tab. Select the tab on click. "
             def handler(app, mouse_event):
-                if mouse_event.event_type == MouseEventType.MOUSE_DOWN:
-                    editor.window_arrangement.active_tab_index = index
-                    editor.sync_with_prompt_toolkit()
-                else:
+                if mouse_event.event_type != MouseEventType.MOUSE_DOWN:
                     return NotImplemented
+                editor.window_arrangement.active_tab_index = index
+                editor.sync_with_prompt_toolkit()
             return handler
 
         def get_tokens():
@@ -75,14 +71,14 @@ class TabsControl(FormattedTextControl):
             for i, tab in enumerate(editor.window_arrangement.tab_pages):
                 caption = location_for_tab(tab)
                 if tab.has_unsaved_changes:
-                    caption = ' + ' + caption
+                    caption = f' + {caption}'
 
                 handler = create_tab_handler(i)
 
                 if i == selected_tab_index:
-                    append(('class:tabbar.tab.active', ' %s ' % caption, handler))
+                    append(('class:tabbar.tab.active', f' {caption} ', handler))
                 else:
-                    append(('class:tabbar.tab', ' %s ' % caption, handler))
+                    append(('class:tabbar.tab', f' {caption} ', handler))
                 append(('class:tabbar', ' '))
 
             return result
@@ -173,7 +169,7 @@ class BufferListOverlay(ConditionalContainer):
                     result[i] = ('class:searchmatch', result[i][1])
 
             if location == search_string:
-                result[0] = (result[0][0] + ' [SetCursorPosition]', result[0][1])
+                result[0] = f'{result[0][0]} [SetCursorPosition]', result[0][1]
 
             return result
 
@@ -259,10 +255,7 @@ class MessageToolbarBar(ConditionalContainer):
     """
     def __init__(self, editor):
         def get_tokens():
-            if editor.message:
-                return [('class:message', editor.message)]
-            else:
-                return []
+            return [('class:message', editor.message)] if editor.message else []
 
         super(MessageToolbarBar, self).__init__(
             FormattedTextToolbar(get_tokens),
@@ -281,11 +274,7 @@ class ReportMessageToolbar(ConditionalContainer):
             lineno = eb.buffer.document.cursor_position_row
             errors = eb.report_errors
 
-            for e in errors:
-                if e.lineno == lineno:
-                    return e.formatted_text
-
-            return []
+            return next((e.formatted_text for e in errors if e.lineno == lineno), [])
 
         super(ReportMessageToolbar, self).__init__(
                 FormattedTextToolbar(get_formatted_text),
@@ -318,10 +307,7 @@ class WindowStatusBar(FormattedTextToolbar):
                         else:
                             return ' -- INSERT --'
                     elif replace_mode:
-                        if temp_navigation:
-                            return ' -- (replace) --'
-                        else:
-                            return ' -- REPLACE --'
+                        return ' -- (replace) --' if temp_navigation else ' -- REPLACE --'
                     elif visual_block:
                         return ' -- VISUAL BLOCK --'
                     elif visual_line:
@@ -331,10 +317,7 @@ class WindowStatusBar(FormattedTextToolbar):
                 return '                     '
 
             def recording():
-                if app.vi_state.recording_register:
-                    return 'recording '
-                else:
-                    return ''
+                return 'recording ' if app.vi_state.recording_register else ''
 
             return ''.join([
                 ' ',
@@ -357,9 +340,7 @@ class WindowStatusBarRuler(ConditionalContainer):
     """
     def __init__(self, editor, buffer_window, buffer):
         def get_scroll_text():
-            info = buffer_window.render_info
-
-            if info:
+            if info := buffer_window.render_info:
                 if info.full_height_visible:
                     return 'All'
                 elif info.top_visible:
@@ -401,10 +382,7 @@ class SimpleArgToolbar(ConditionalContainer):
     def __init__(self):
         def get_tokens():
             arg = get_app().key_processor.arg
-            if arg is not None:
-                return [('class:arg', ' %s ' % arg)]
-            else:
-                return []
+            return [('class:arg', f' {arg} ')] if arg is not None else []
 
         super(SimpleArgToolbar, self).__init__(
             Window(FormattedTextControl(get_tokens), align=WindowAlign.RIGHT),
@@ -652,7 +630,4 @@ def get_terminal_title(editor):
     e.g.: "filename.py (/directory) - Pyvim"
     """
     eb = editor.current_editor_buffer
-    if eb is not None:
-        return '%s - Pyvim' % (eb.location or '[New file]', )
-    else:
-        return 'Pyvim'
+    return f"{eb.location or '[New file]'} - Pyvim" if eb is not None else 'Pyvim'
