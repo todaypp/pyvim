@@ -39,13 +39,10 @@ def report(location, document):
     """
     assert isinstance(location, six.string_types)
 
-    if location.endswith('.py'):
-        return report_pyflakes(document)
-    else:
-        return []
+    return report_pyflakes(document) if location.endswith('.py') else []
 
 
-WORD_CHARACTERS = string.ascii_letters + '0123456789_'
+WORD_CHARACTERS = f'{string.ascii_letters}0123456789_'
 
 
 def report_pyflakes(document):

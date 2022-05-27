@@ -124,7 +124,7 @@ def set_command_execute(editor, variables):
         else:
             SET_COMMANDS[option](editor)
     else:
-        editor.show_message('Unknown option: %s' % option)
+        editor.show_message(f'Unknown option: {option}')
 
 
 @cmd('bn', accepts_force=True)
@@ -236,8 +236,7 @@ def _buffer(editor, variables, force=False):
     eb = editor.window_arrangement.active_editor_buffer
     force = bool(variables['force'])
 
-    buffer_name = variables.get('buffer_name')
-    if buffer_name:
+    if buffer_name := variables.get('buffer_name'):
         if not force and eb.has_unsaved_changes:
             editor.show_message(_NO_WRITE_SINCE_LAST_CHANGE_TEXT)
         else:
@@ -408,7 +407,7 @@ def tab_previous(editor):
 def pwd(editor):
     " Print working directory. "
     directory = os.getcwd()
-    editor.show_message('{}'.format(directory))
+    editor.show_message(f'{directory}')
 
 
 @location_cmd('cd', accepts_force=False)
@@ -417,7 +416,7 @@ def pwd(editor, location):
     try:
         os.chdir(location)
     except OSError as e:
-        editor.show_message('{}'.format(e))
+        editor.show_message(f'{e}')
 
 
 @_cmd('colorscheme')
@@ -426,8 +425,7 @@ def color_scheme(editor, variables):
     """
     Go to one of the open buffers.
     """
-    colorscheme = variables.get('colorscheme')
-    if colorscheme:
+    if colorscheme := variables.get('colorscheme'):
         editor.use_colorscheme(colorscheme)
 
 
@@ -698,10 +696,7 @@ def disable_cursorcolumn(editor):
 @set_cmd('cc', accepts_value=True)
 def set_scroll_offset(editor, value):
     try:
-        if value:
-            numbers = [int(val) for val in value.split(',')]
-        else:
-            numbers = []
+        numbers = [int(val) for val in value.split(',')] if value else []
     except ValueError:
         editor.show_message(
             'Invalid value. Expecting comma separated list of integers')

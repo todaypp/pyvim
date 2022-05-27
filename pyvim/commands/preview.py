@@ -67,8 +67,7 @@ class CommandPreviewer(object):
 
         # Preview colorschemes.
         if command == 'colorscheme':
-            colorscheme = variables.get('colorscheme')
-            if colorscheme:
+            if colorscheme := variables.get('colorscheme'):
                 e.use_colorscheme(colorscheme)
 
         # Preview some set commands.
@@ -98,7 +97,6 @@ class CommandPreviewer(object):
             elif set_option in ('nocursorcolumn', 'nocuc'):
                 e.cursorcolumn = False
             elif set_option in ('colorcolumn', 'cc'):
-                value = variables.get('set_value', '')
-                if value:
+                if value := variables.get('set_value', ''):
                     e.colorcolumn = [
                         int(v) for v in value.split(',') if v.isdigit()]

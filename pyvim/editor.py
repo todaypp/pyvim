@@ -233,10 +233,7 @@ class Editor(object):
         # prompt-toolkit matches our WindowArrangement.
         self.editor_layout.update()
 
-        # Make sure that the focus stack of prompt-toolkit has the current
-        # page.
-        window = self.window_arrangement.active_pt_window
-        if window:
+        if window := self.window_arrangement.active_pt_window:
             self.application.layout.focus(window)
 
     def show_help(self):

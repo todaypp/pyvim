@@ -20,9 +20,7 @@ class DocumentLexer(Lexer):
         """
         Call the lexer and return a get_tokens_for_line function.
         """
-        location = self.editor_buffer.location
-
-        if location:
+        if location := self.editor_buffer.location:
             if self.editor_buffer.in_file_explorer_mode:
                 return PygmentsLexer(DirectoryListingLexer, sync_from_start=False).lex_document(document)
 
@@ -33,22 +31,21 @@ class DocumentLexer(Lexer):
 
 _DirectoryListing = Token.DirectoryListing
 
+
+
 class DirectoryListingLexer(RegexLexer):
     """
     Highlighting of directory listings.
     """
     name = 'directory-listing'
     tokens = {
-        str('root'): [  # Conversion to `str` because of Pygments on Python 2.
+        'root': [  # Conversion to `str` because of Pygments on Python 2.
             (r'^".*', _DirectoryListing.Header),
-
             (r'^\.\./$', _DirectoryListing.ParentDirectory),
             (r'^\./$', _DirectoryListing.CurrentDirectory),
-
             (r'^[^"].*/$', _DirectoryListing.Directory),
             (r'^[^"].*\.(txt|rst|md)$', _DirectoryListing.Textfile),
             (r'^[^"].*\.(py)$', _DirectoryListing.PythonFile),
-
             (r'^[^"].*\.(pyc|pyd)$', _DirectoryListing.Tempfile),
             (r'^\..*$', _DirectoryListing.Dotfile),
         ]

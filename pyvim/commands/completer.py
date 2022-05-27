@@ -14,7 +14,7 @@ __all__ = (
 
 
 def create_command_completer(editor):
-    commands = [c + ' ' for c in get_commands()]
+    commands = [f'{c} ' for c in get_commands()]
 
     return GrammarCompleter(COMMAND_GRAMMAR, {
         'command': WordCompleter(commands),

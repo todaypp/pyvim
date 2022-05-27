@@ -47,7 +47,7 @@ def handle_command(editor, input_string):
 
     else:
         # For unknown commands, show error message.
-        editor.show_message('Not an editor command: %s' % input_string)
+        editor.show_message(f'Not an editor command: {input_string}')
         return
 
     # After execution of commands, make sure to update the layout and focus

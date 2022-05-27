@@ -34,7 +34,7 @@ def generate_built_in_styles():
     """
     Return a mapping from style names to their classes.
     """
-    return dict((name, get_editor_style_by_name(name)) for name in get_all_styles())
+    return {name: get_editor_style_by_name(name) for name in get_all_styles()}
 
 
 style_extensions = {
